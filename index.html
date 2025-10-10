@@ -3,82 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Lotto</title>
+    <title>Home - Personal Zucchero</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background: #f8f9fa;
+            font-family: 'Segoe UI', sans-serif;
         }
-        .card {
-            padding: 2rem;
+        .home-card {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
             text-align: center;
-            min-width: 300px;
+            max-width: 500px;
+        }
+        .home-card h1 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #343a40;
+        }
+        .home-card p {
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
 <body>
-    <div class="card shadow">
-        <h3 id="message">Caricamento...</h3>
+    <div class="home-card">
+        <!-- Puoi mettere qui un logo se vuoi -->
+        <!-- <img src="logo.png" alt="Logo" class="logo"> -->
+        <h1>Benvenuto!</h1>
+        <p>Questa è la home page.</p>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAIXVjhG_rWSrLil-7SavwnwhQ2iSntVq0",
-            authDomain: "personal-zucchero.firebaseapp.com",
-            projectId: "personal-zucchero",
-            storageBucket: "personal-zucchero.firebasestorage.app",
-            messagingSenderId: "774491547691",
-            appId: "1:774491547691:web:8b5172811785f68238a26e",
-            measurementId: "G-ZVTMDKFHKP"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        const params = new URLSearchParams(window.location.search);
-        const lottoId = params.get("lottoId");
-        const messageEl = document.getElementById("message");
-
-        function showMessage(text, type = "info") {
-            messageEl.innerHTML = `<div class="alert alert-${type}" role="alert">${text}</div>`;
-        }
-
-        if (!lottoId) {
-            showMessage("ID lotto mancante!", "warning");
-        } else {
-            const lottoRef = doc(db, "lotti_zucchero", lottoId);
-
-            getDoc(lottoRef)
-                .then(docSnap => {
-                    if (!docSnap.exists()) {
-                        showMessage("Lotto non trovato!", "danger");
-                        return;
-                    }
-
-                    const data = docSnap.data();
-                    if (data.loaded_at) {
-					    const loadedDate = data.loaded_at.toDate();
-						const formattedDate = loadedDate.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'medium' });
-						showMessage(`Lotto ${lottoId} già stato caricato in precedenza: ${formattedDate}`, "info");
-                    } else {
-                        updateDoc(lottoRef, { loaded_at: serverTimestamp() })
-                            .then(() => showMessage(`Lotto ${lottoId} caricato!`, "success"))
-                            .catch(err => showMessage(`Errore: ${err.message}`, "danger"));
-                    }
-                })
-                .catch(err => showMessage(`Errore nel recuperare il lotto: ${err.message}`, "danger"));
-        }
-    </script>
-
-    <!-- Bootstrap JS (opzionale, solo se servono componenti JS) -->
+    <!-- Bootstrap JS (opzionale, se servono componenti JS) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
