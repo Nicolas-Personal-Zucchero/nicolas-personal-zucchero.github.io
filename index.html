@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Scan Lotto</title>
+</head>
+<body>
+<h3>Caricamento...</h3>
+
+<!-- Firebase App -->
+<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
+<!-- Firestore -->
+<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
+<!-- Functions (opzionale) -->
+<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-functions-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+    apiKey: "API_KEY",
+    authDomain: "TUO_PROGETTO.firebaseapp.com",
+    projectId: "TUO_PROGETTO",
+    storageBucket: "TUO_PROGETTO.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+const params = new URLSearchParams(window.location.search);
+const lottoId = params.get("lottoId");
+
+if (lottoId) {
+    const lottoRef = db.collection("lotti_zucchero").doc(lottoId);
+    lottoRef.update({ loaded_at: firebase.firestore.FieldValue.serverTimestamp() })
+        .then(() => document.body.innerHTML = "<h3>Lotto aggiornato con successo!</h3>")
+        .catch(err => document.body.innerHTML = `<h3>Errore: ${err.message}</h3>`);
+} else {
+    document.body.innerHTML = "<h3>ID lotto mancante!</h3>";
+}
+</script>
+</body>
+</html>
