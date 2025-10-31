@@ -29,7 +29,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
         import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-        
+
         const firebaseConfig = {
             apiKey: "AIzaSyBBYfPLP89z8fddGd4uST-kNbdjJ5WThz0",
             authDomain: "personal-zucchero-508a8.firebaseapp.com",
@@ -66,9 +66,8 @@
                     const data = docSnap.data();
                     
                     // Aggiungi la data corrente alla lista "scansioni_etichette"
-                    updateDoc(lottoRef, {
-                        scansioni_etichette: arrayUnion(serverTimestamp())
-                    })
+                    const newEntry = { timestamp: serverTimestamp() };
+                    updateDoc(lottoRef, { scansioni_etichette: arrayUnion(newEntry) })
                     .then(() => showMessage(`Scansione del lotto ${lottoId} registrata!`, "success"))
                     .catch(err => showMessage(`Errore: ${err.message}`, "danger"));
                 })
