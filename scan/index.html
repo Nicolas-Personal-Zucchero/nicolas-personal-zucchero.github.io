@@ -31,18 +31,22 @@
                 <label for="impiantoSelect" class="form-label">Impianto</label>
                 <select class="form-select" id="impiantoSelect" required>
                     <option value="">Seleziona impianto</option>
-                    <option value="Impianto A">Impianto A</option>
-                    <option value="Impianto B">Impianto B</option>
-                    <option value="Impianto C">Impianto C</option>
+                    <option>Impianto 1 (Bianco)</option>
+                    <option>Impianto 2 (Bianco)</option>
+                    <option>Impianto 3 (Canna)</option>
+                    <option>Cisterna</option>
                 </select>
             </div>
             <div class="mb-3">
                 <label for="operatoreSelect" class="form-label">Operatore</label>
                 <select class="form-select" id="operatoreSelect" required>
                     <option value="">Seleziona operatore</option>
-                    <option value="Mario Rossi">Mario Rossi</option>
-                    <option value="Luigi Bianchi">Luigi Bianchi</option>
-                    <option value="Anna Verdi">Anna Verdi</option>
+                    <option>Daniel Barbieri</option>
+                    <option>Gianluca Magnanelli</option>
+                    <option>Luca Soldati</option>
+                    <option>Denis Severini</option>
+                    <option>Mauro Amadori</option>
+                    ù<option>Altro</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary w-100">Registra scansione</button>
@@ -74,6 +78,16 @@
         const lottoInput = document.getElementById("lottoIdInput");
         const impiantoSelect = document.getElementById("impiantoSelect");
         const operatoreSelect = document.getElementById("operatoreSelect");
+
+        const savedOperatore = localStorage.getItem("operatore");
+        if (savedOperatore) {
+            operatoreSelect.value = savedOperatore;
+        }
+
+        // Aggiorna localStorage ogni volta che l'utente seleziona un operatore
+        operatoreSelect.addEventListener("change", () => {
+            localStorage.setItem("operatore", operatoreSelect.value);
+        });
 
         function showMessage(text, type = "info") {
             messageEl.innerHTML = `<div class="alert alert-${type}" role="alert">${text}</div>`;
