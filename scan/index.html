@@ -66,8 +66,7 @@
                     const data = docSnap.data();
                     
                     // Aggiungi la data corrente alla lista "scansioni_etichette"
-                    const newEntry = { timestamp: serverTimestamp() };
-                    updateDoc(lottoRef, { scansioni_etichette: arrayUnion(newEntry) })
+                    updateDoc(lottoRef, { scansioni_etichette: arrayUnion(new Date()) })
                     .then(() => showMessage(`Scansione del lotto ${lottoId} registrata!`, "success"))
                     .catch(err => showMessage(`Errore: ${err.message}`, "danger"));
                 })
