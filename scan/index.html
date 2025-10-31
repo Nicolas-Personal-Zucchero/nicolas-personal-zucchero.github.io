@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scan Lotto</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -16,7 +15,6 @@
         }
         .card {
             padding: 2rem;
-            text-align: center;
             min-width: 300px;
         }
     </style>
@@ -24,11 +22,36 @@
 <body>
     <div class="card shadow">
         <h3 id="message">Caricamento...</h3>
+        <form id="scanForm" class="d-none mt-3">
+            <div class="mb-3">
+                <label for="lottoIdInput" class="form-label">Lotto ID</label>
+                <input type="text" class="form-control" id="lottoIdInput" readonly>
+            </div>
+            <div class="mb-3">
+                <label for="impiantoSelect" class="form-label">Impianto</label>
+                <select class="form-select" id="impiantoSelect" required>
+                    <option value="">Seleziona impianto</option>
+                    <option value="Impianto A">Impianto A</option>
+                    <option value="Impianto B">Impianto B</option>
+                    <option value="Impianto C">Impianto C</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="operatoreSelect" class="form-label">Operatore</label>
+                <select class="form-select" id="operatoreSelect" required>
+                    <option value="">Seleziona operatore</option>
+                    <option value="Mario Rossi">Mario Rossi</option>
+                    <option value="Luigi Bianchi">Luigi Bianchi</option>
+                    <option value="Anna Verdi">Anna Verdi</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Registra scansione</button>
+        </form>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBBYfPLP89z8fddGd4uST-kNbdjJ5WThz0",
@@ -45,7 +68,12 @@
 
         const params = new URLSearchParams(window.location.search);
         const lottoId = params.get("lottoId");
+
         const messageEl = document.getElementById("message");
+        const formEl = document.getElementById("scanForm");
+        const lottoInput = document.getElementById("lottoIdInput");
+        const impiantoSelect = document.getElementById("impiantoSelect");
+        const operatoreSelect = document.getElementById("operatoreSelect");
 
         function showMessage(text, type = "info") {
             messageEl.innerHTML = `<div class="alert alert-${type}" role="alert">${text}</div>`;
@@ -63,18 +91,43 @@
                         return;
                     }
 
-                    const data = docSnap.data();
-                    
-                    // Aggiungi la data corrente alla lista "scansioni_etichette"
-                    updateDoc(lottoRef, { scansioni_etichette: arrayUnion(new Date()) })
-                    .then(() => showMessage(`Scansione del lotto ${lottoId} registrata!`, "success"))
-                    .catch(err => showMessage(`Errore: ${err.message}`, "danger"));
+                    // Mostra il form con lottoId
+                    lottoInput.value = lottoId;
+                    formEl.classList.remove("d-none");
+                    messageEl.innerHTML = ""; // rimuove "Caricamento..."
                 })
                 .catch(err => showMessage(`Errore nel recuperare il lotto: ${err.message}`, "danger"));
         }
+
+        formEl.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const impianto = impiantoSelect.value;
+            const operatore = operatoreSelect.value;
+
+            if (!impianto || !operatore) {
+                showMessage("Seleziona impianto e operatore!", "warning");
+                return;
+            }
+
+            const lottoRef = doc(db, "lotti_zucchero", lottoId);
+
+            try {
+                await updateDoc(lottoRef, {
+                    scansioni_etichette: arrayUnion({
+                        impianto,
+                        operatore,
+                        date: new Date()
+                    })
+                });
+                showMessage(`Scansione registrata con successo!`, "success");
+                formEl.reset(); // opzionale: pulisce le select
+            } catch (err) {
+                showMessage(`Errore durante il salvataggio: ${err.message}`, "danger");
+            }
+        });
     </script>
 
-    <!-- Bootstrap JS (opzionale, solo se servono componenti JS) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
