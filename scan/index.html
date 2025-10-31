@@ -117,9 +117,14 @@
         formEl.addEventListener("submit", async (e) => {
             e.preventDefault();
 
+            const lottoId = lottoInput.value;
             const impianto = impiantoSelect.value;
             const operatore = operatoreSelect.value;
 
+            if (!lottoId) {
+                showMessage("ID lotto mancante! Scansionare il QR CODE", "warning");
+                return;
+            }
             if (!impianto || !operatore) {
                 showMessage("Seleziona impianto e operatore!", "warning");
                 return;
