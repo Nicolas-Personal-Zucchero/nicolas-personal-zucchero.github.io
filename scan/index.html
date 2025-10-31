@@ -64,15 +64,13 @@
                     }
 
                     const data = docSnap.data();
-                    if (data.loaded_at) {
-					    const loadedDate = data.loaded_at.toDate();
-						const formattedDate = loadedDate.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'medium' });
-						showMessage(`Lotto ${lottoId} già stato caricato in precedenza: ${formattedDate}`, "info");
-                    } else {
-                        updateDoc(lottoRef, { loaded_at: serverTimestamp() })
-                            .then(() => showMessage(`Lotto ${lottoId} caricato!`, "success"))
-                            .catch(err => showMessage(`Errore: ${err.message}`, "danger"));
-                    }
+                    
+                    // Aggiungi la data corrente alla lista "scansioni_etichette"
+                    updateDoc(lottoRef, {
+                        scansioni_etichette: arrayUnion(serverTimestamp())
+                    })
+                    .then(() => showMessage(`Scansione del lotto ${lottoId} registrata!`, "success"))
+                    .catch(err => showMessage(`Errore: ${err.message}`, "danger"));
                 })
                 .catch(err => showMessage(`Errore nel recuperare il lotto: ${err.message}`, "danger"));
         }
