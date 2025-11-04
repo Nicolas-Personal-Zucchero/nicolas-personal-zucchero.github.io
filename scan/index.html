@@ -142,6 +142,8 @@
                 });
                 showMessage(`Scansione registrata con successo!`, "success");
 				formEl.classList.add("d-none");
+				const newUrl = window.location.origin + window.location.pathname;
+				history.replaceState(null, "", newUrl);
             } catch (err) {
                 showMessage(`Errore durante il salvataggio: ${err.message}`, "danger");
             }
