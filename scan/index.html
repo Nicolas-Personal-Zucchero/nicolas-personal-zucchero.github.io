@@ -141,9 +141,7 @@
                     })
                 });
                 showMessage(`Scansione registrata con successo!`, "success");
-				setTimeout(() => {
-					window.location.href = "https://www.google.com";
-				}, 1500); // 1.2 secondi, aumenta o diminuisci come vuoi
+				formEl.classList.add("d-none");
             } catch (err) {
                 showMessage(`Errore durante il salvataggio: ${err.message}`, "danger");
             }
