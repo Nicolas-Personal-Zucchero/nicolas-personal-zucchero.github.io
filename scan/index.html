@@ -47,7 +47,7 @@
                     <option>Luca Soldati</option>
                     <option>Denis Severini</option>
                     <option>Mauro Amadori</option>
-                    ù<option>Altro</option>
+                    <option>Altro</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary w-100">Registra scansione</button>
@@ -141,7 +141,10 @@
                     })
                 });
                 showMessage(`Scansione registrata con successo!`, "success");
-                formEl.reset(); // opzionale: pulisce le select
+				setTimeout(() => {
+					window.history.back(); // oppure window.close() se preferisci
+				}, 1200);
+                //formEl.reset(); // opzionale: pulisce le select
             } catch (err) {
                 showMessage(`Errore durante il salvataggio: ${err.message}`, "danger");
             }
