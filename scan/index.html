@@ -199,7 +199,9 @@
                     showMessage("Asset non trovato!", "danger");
                     return;
                 }
-                assetInput.value = asset;
+                const assetData = docSnap.data();
+                assetInput.value = assetData.nome;
+                
                 assetForm.classList.remove("d-none");
                 messageEl.innerHTML = "";
 
