@@ -23,10 +23,12 @@
 <body>
     <div class="card shadow">
         <h3 id="message">Caricamento...</h3>
-        <form id="scanForm" class="d-none mt-3">
+
+        <!-- Form Lotto -->
+        <form id="lottoForm" class="d-none mt-3">
             <div class="mb-3">
-                <label for="lottoIdInput" class="form-label">Lotto ID</label>
-                <input type="text" class="form-control" id="lottoIdInput" readonly required>
+                <label for="lottoInput" class="form-label">Lotto</label>
+                <input type="text" class="form-control" id="lottoInput" readonly required>
             </div>
             <div class="mb-3">
                 <label for="impiantoSelect" class="form-label">Impianto</label>
@@ -41,17 +43,38 @@
             <div class="mb-3">
                 <label for="operatoreSelect" class="form-label">Operatore</label>
                 <select class="form-select" id="operatoreSelect" required>
-                    <option value="">Seleziona operatore</option>
-                    <option>Daniel Barbieri</option>
-                    <option>Gianluca Magnanelli</option>
-                    <option>Luca Soldati</option>
-                    <option>Denis Severini</option>
-                    <option>Mauro Amadori</option>
-                    <option>Altro</option>
+                    <option value="" selected>Seleziona operatore</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary w-100">Registra scansione</button>
         </form>
+
+        <!-- Form Asset -->
+        <form id="assetForm" class="d-none mt-3">
+            <div class="mb-3">
+                <label for="assetIdInput" class="form-label">Asset ID</label>
+                <input type="text" class="form-control" id="assetIdInput" readonly required>
+            </div>
+            <div class="mb-3">
+                <label for="tipologiaSelect" class="form-label">Tipologia Intervento</label>
+                <select class="form-select" id="tipologiaSelect" required>
+                    <option value="Pulizia" selected>Pulizia</option>
+                    <option value="Manutenzione">Manutenzione</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="operatoreAssetSelect" class="form-label">Operatore</label>
+                <select class="form-select" id="operatoreAssetSelect" required>
+                    <option value="" selected>Seleziona operatore</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="noteInput" class="form-label">Note</label>
+                <input type="text" class="form-control" id="noteInput">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Registra intervento</button>
+        </form>
+
     </div>
 
     <script type="module">
@@ -71,83 +94,149 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const params = new URLSearchParams(window.location.search);
-        const lottoId = params.get("lottoId");
-
-        const messageEl = document.getElementById("message");
-        const formEl = document.getElementById("scanForm");
-        const lottoInput = document.getElementById("lottoIdInput");
-        const impiantoSelect = document.getElementById("impiantoSelect");
+        //Caricamento operatori nelle select
         const operatoreSelect = document.getElementById("operatoreSelect");
+        const operatoreAssetSelect = document.getElementById("operatoreAssetSelect");
 
-        const savedOperatore = localStorage.getItem("operatore");
-        if (savedOperatore) {
-            operatoreSelect.value = savedOperatore;
-        }
-
-        // Aggiorna localStorage ogni volta che l'utente seleziona un operatore
-        operatoreSelect.addEventListener("change", () => {
-            localStorage.setItem("operatore", operatoreSelect.value);
+        const operatori = ["Daniel Barbieri", "Gianluca Magnanelli", "Luca Soldati", "Denis Severini", "Mauro Amadori"]
+        operatori.forEach(op => {
+            operatoreSelect.add(new Option(op, op));
+            operatoreAssetSelect.add(new Option(op, op));
         });
 
-        function showMessage(text, type = "info") {
+        const savedOperatore = localStorage.getItem("operatore");
+
+        if (savedOperatore) {
+            operatoreSelect.value = savedOperatore;
+            operatoreAssetSelect.value = savedOperatore;
+        }
+
+        operatoreSelect.addEventListener("change", () => localStorage.setItem("operatore", operatoreSelect.value));
+        operatoreAssetSelect.addEventListener("change", () => localStorage.setItem("operatore", operatoreAssetSelect.value));
+
+        // Elementi
+        const messageEl = document.getElementById("message");
+
+        // Lotto
+        const lottoForm = document.getElementById("lottoForm");
+        const lottoInput = document.getElementById("lottoInput");
+        const impiantoSelect = document.getElementById("impiantoSelect");
+        
+
+        // Asset
+        const assetForm = document.getElementById("assetForm");
+        const assetInput = document.getElementById("assetIdInput");
+        const tipologiaSelect = document.getElementById("tipologiaSelect");
+        const noteInput = document.getElementById("noteInput");
+
+        // Messaggi
+        function showMessage(text, type="info") {
             messageEl.innerHTML = `<div class="alert alert-${type}" role="alert">${text}</div>`;
         }
 
-        if (!lottoId) {
-            showMessage("ID lotto mancante!", "warning");
-        } else {
-            const lottoRef = doc(db, "lotti_zucchero", lottoId);
+        // Parametri URL
+        const params = new URLSearchParams(window.location.search);
+        const lottoId = params.get("lottoId");
+        const assetId = params.get("assetId");
 
-            getDoc(lottoRef)
-                .then(docSnap => {
-                    if (!docSnap.exists()) {
-                        showMessage("Lotto non trovato!", "danger");
+        if (lottoId && !assetId) {
+            loadLottoForm(lottoId);
+        } else if (assetId && !lottoId) {
+            loadAssetForm(assetId);
+        } else {
+            showMessage("Indirizzo non corretto!", "warning");
+        }
+
+        // --- FUNZIONI ---
+        async function loadLottoForm(lotto) {
+            const lottoRef = doc(db, "lotti_zucchero", lotto);
+
+            try {
+                const docSnap = await getDoc(lottoRef);
+                if (!docSnap.exists()) {
+                    showMessage("Lotto non trovato!", "danger");
+                    return;
+                }
+
+                lottoInput.value = lotto;
+                lottoForm.classList.remove("d-none");
+                messageEl.innerHTML = "";
+
+                lottoForm.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    
+                    const impianto = impiantoSelect.value;
+                    const operatore = operatoreSelect.value;
+
+                    if (!impianto || !operatore) {
+                        showMessage("Seleziona impianto e operatore!", "warning");
                         return;
                     }
 
-                    // Mostra il form con lottoId
-                    lottoInput.value = lottoId;
-                    formEl.classList.remove("d-none");
-                    messageEl.innerHTML = ""; // rimuove "Caricamento..."
-                })
-                .catch(err => showMessage(`Errore nel recuperare il lotto: ${err.message}`, "danger"));
+                    try {
+                        await updateDoc(lottoRef, {
+                            scansioni_etichette: arrayUnion({impianto, operatore, date: new Date()})
+                        });
+                        showMessage("Scansione registrata con successo!", "success");
+                        lottoForm.classList.add("d-none");
+                    } catch (err) {
+                        showMessage(`Errore durante il salvataggio: ${err.message}`, "danger");
+                    }
+                    const newUrl = window.location.origin + window.location.pathname;
+				    history.replaceState(null, "", newUrl);
+                });
+            } catch (err) {
+                showMessage(`Errore nel recuperare il lotto: ${err.message}`, "danger");
+            }
         }
 
-        formEl.addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            const lottoId = lottoInput.value;
-            const impianto = impiantoSelect.value;
-            const operatore = operatoreSelect.value;
-
-            if (!lottoId) {
-                showMessage("ID lotto mancante! Scansionare il QR CODE", "warning");
-                return;
-            }
-            if (!impianto || !operatore) {
-                showMessage("Seleziona impianto e operatore!", "warning");
-                return;
-            }
-
-            const lottoRef = doc(db, "lotti_zucchero", lottoId);
+        async function loadAssetForm(asset) {
+            const assetRef = doc(db, "asset", asset);
 
             try {
-                await updateDoc(lottoRef, {
-                    scansioni_etichette: arrayUnion({
-                        impianto,
-                        operatore,
-                        date: new Date()
-                    })
+                const docSnap = await getDoc(assetRef);
+                if (!docSnap.exists()) {
+                    showMessage("Asset non trovato!", "danger");
+                    return;
+                }
+                assetInput.value = asset;
+                assetForm.classList.remove("d-none");
+                messageEl.innerHTML = "";
+
+                assetForm.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const tipologia = tipologiaSelect.value;
+                    const operatore = operatoreAssetSelect.value;
+                    const note = noteInput.value;
+
+                    if (!tipologia || !operatore) {
+                        showMessage("Compila tipologia e operatore!", "warning");
+                        return;
+                    }
+
+                    try {
+                        const intervento = {operatore, note, date: new Date()}
+                        if(tipologia === "Pulizia") {
+                            await updateDoc(assetRef, {
+                                pulizie: arrayUnion(intervento)
+                            });
+                        } else if(tipologia === "Manutenzione") {
+                            await updateDoc(assetRef, {
+                                manutenzioni: arrayUnion(intervento)
+                            });
+                        }
+                        showMessage("Intervento registrato con successo!", "success");
+                        assetForm.classList.add("d-none");
+                    } catch (err) {
+                        showMessage(`Errore: ${err.message}`, "danger");
+                    }
+                    const newUrl = window.location.origin + window.location.pathname;
+				    history.replaceState(null, "", newUrl);
                 });
-                showMessage(`Scansione registrata con successo!`, "success");
-				formEl.classList.add("d-none");
-				const newUrl = window.location.origin + window.location.pathname;
-				history.replaceState(null, "", newUrl);
             } catch (err) {
-                showMessage(`Errore durante il salvataggio: ${err.message}`, "danger");
+                showMessage(`Errore nel recuperare l'asset: ${err.message}`, "danger");
             }
-        });
+        }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
