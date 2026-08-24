@@ -8,63 +8,89 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/style.css">
 </head>
-<body>
-    <div class="card shadow">
-        <h3 id="message">Caricamento...</h3>
-
-        <form id="assetForm" class="d-none mt-3">
-            <div class="mb-3">
-                <label for="assetNomeInput" class="form-label">Nome</label>
-                <input type="text" class="form-control" id="assetNomeInput" readonly required>
-            </div>
-            <div class="mb-3">
-                <label for="tipologiaSelect" class="form-label">Tipologia Intervento</label>
-                <select class="form-select" id="tipologiaSelect" required>
-                    <option value="Pulizia" selected>Pulizia</option>
-                    <option value="Manutenzione">Manutenzione</option>
+<body class="bg-light">
+    <div class="container-fluid px-3 py-4 bg-white min-vh-100">
+        <h3 id="assetNameLabel" class="mb-4 fw-bold text-center"></h3>
+        <div id="message" class="mb-3">Caricamento...</div>
+        
+        <form id="assetForm" class="d-none">
+            <div class="mb-4">
+                <label for="tipologiaSelect" class="form-label text-muted fw-bold">Tipologia Intervento</label>
+                <select class="form-select form-select-lg bg-light" id="tipologiaSelect" required>
+                    <option value="manutenzione">Manutenzione</option>
+                    <option value="pulizia" selected>Pulizia</option>
+                    <option value="analisi">Analisi</option>
                 </select>
             </div>
-            <div class="mb-3">
-                <label for="operatoreSelect" class="form-label">Operatore Interno</label>
-                <select class="form-select" id="operatoreSelect" required>
+            
+            <div class="mb-4">
+                <label for="dataInput" class="form-label text-muted fw-bold">Data Intervento</label>
+                <input type="date" class="form-control form-control-lg bg-light" id="dataInput" required>
+            </div>
+            
+            <div class="mb-4">
+                <label for="operatoreSelect" class="form-label text-muted fw-bold">Operatore</label>
+                <select class="form-select form-select-lg bg-light" id="operatoreSelect" required>
                     <option value="" selected>Seleziona operatore</option>
+                    <option value="Daniel Barbieri">Daniel Barbieri</option>
+                    <option value="Gianluca Magnanelli">Gianluca Magnanelli</option>
+                    <option value="Luca Soldati">Luca Soldati</option>
+                    <option value="Denis Severini">Denis Severini</option>
+                    <option value="Mauro Amadori">Mauro Amadori</option>
+                    <option value="Nicolas Amadori">Nicolas Amadori</option>
+                    <option value="Esterno">Esterno</option>
                 </select>
             </div>
-
-            <div id="extraFields" class="border p-2 mb-3 bg-light rounded">
-                <div class="mb-2">
-                    <label for="aziendaEsternaInput" class="form-label">Azienda Esterna</label>
-                    <input type="text" class="form-control" id="aziendaEsternaInput" placeholder="Nome azienda">
-                </div>
-                <div class="mb-2">
-                    <label for="operatoreEsternoInput" class="form-label">Nome Operatore Esterno</label>
-                    <input type="text" class="form-control" id="operatoreEsternoInput" placeholder="Nome e Cognome">
-                </div>
+            
+            <div class="mb-4">
+                <label for="noteInput" class="form-label text-muted fw-bold">Note</label>
+                <textarea class="form-control form-control-lg bg-light" id="noteInput" style="height: 120px; resize: vertical;"></textarea>
             </div>
-
-            <div class="mb-3">
-                <label for="noteInput" class="form-label">Note</label>
-                <input type="text" class="form-control" id="noteInput">
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Registra intervento</button>
+            
+            <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fs-4 fw-bold mt-2 shadow-sm">
+                Registra intervento
+            </button>
         </form>
     </div>
 
     <script type="module">
-        import { doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+        import { doc, getDoc, collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
         import { db, operatori } from "../../js/firebase-config.js";
 
         const messageEl = document.getElementById("message");
         const assetForm = document.getElementById("assetForm");
-        const assetNome = document.getElementById("assetNomeInput");
+        const assetNome = document.getElementById("assetNameLabel");
+
+        // Form fields
+        const dataInput = document.getElementById("dataInput");
         const tipologiaSelect = document.getElementById("tipologiaSelect");
         const operatoreSelect = document.getElementById("operatoreSelect");
-        const aziendaEsternaInput = document.getElementById("aziendaEsternaInput");
-        const operatoreEsternoInput = document.getElementById("operatoreEsternoInput");
         const noteInput = document.getElementById("noteInput");
 
         function showMessage(text, type="info") {
-            messageEl.innerHTML = `<div class="alert alert-${type}" role="alert">${text}</div>`;
+            const container = document.querySelector('.container-fluid');
+            
+            assetForm.classList.add("d-none");
+            assetNome.classList.add("d-none");
+            
+            document.body.className = `bg-${type}`;
+            const textColor = type === 'warning' ? 'text-dark' : 'text-white';
+            container.className = `container-fluid px-3 py-4 min-vh-100 bg-${type} ${textColor}`;
+
+            const icons = {
+                success: `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>`,
+                danger: `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/></svg>`,
+                warning: `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>`
+            };
+            
+            const icon = icons[type] || icons.success;
+
+            messageEl.innerHTML = `
+                <div class="d-flex flex-column align-items-center justify-content-center min-vh-100 text-center pb-5">
+                    ${icon}
+                    <h1 class="display-4 fw-bold mt-4 px-3">${text}</h1>
+                </div>
+            `;
         }
 
         operatori.forEach(op => operatoreSelect.add(new Option(op, op)));
@@ -91,47 +117,33 @@
                     return;
                 }
                 const assetData = docSnap.data();
-                assetNome.value = assetData.nome;
-                
+                assetNome.textContent = assetData.nome;
+                dataInput.valueAsDate = new Date();
                 assetForm.classList.remove("d-none");
                 messageEl.innerHTML = "";
 
                 assetForm.addEventListener("submit", async (e) => {
                     e.preventDefault();
                     
-                    const tipologia = tipologiaSelect.value;
+                    const dataString = dataInput.value;
+                    const tipo = tipologiaSelect.value;
                     const operatore = operatoreSelect.value;
-                    const aziendaEsterna = aziendaEsternaInput.value;
-                    const nomeOperatoreEsterno = operatoreEsternoInput.value;
                     const note = noteInput.value;
 
-                    if (!tipologia || !operatore) {
+                    if (!tipo || !operatore) {
                         showMessage("Compila tipologia e operatore!", "warning");
                         return;
                     }
 
                     try {
-                        // Creazione oggetto intervento con i nuovi campi
-                        const intervento = {
-                            operatore, 
-                            azienda_esterna: aziendaEsterna || null,
-                            operatore_esterno: nomeOperatoreEsterno || null,
-                            note, 
-                            data: new Date()
-                        };
+                        const dataTimestamp = Timestamp.fromDate(new Date(dataString));
+                        const intervento = { tipo, data: dataTimestamp, operatore, note };
 
-                        if(tipologia === "Pulizia") {
-                            await updateDoc(assetRef, {
-                                pulizie: arrayUnion(intervento)
-                            });
-                        } else if(tipologia === "Manutenzione") {
-                            await updateDoc(assetRef, {
-                                manutenzioni: arrayUnion(intervento)
-                            });
-                        }
+                        const interventiRef = collection(db, "asset", id, "interventi");
+                        await addDoc(interventiRef, intervento);
                         
-                        showMessage("Intervento registrato con successo!", "success");
-                        assetForm.classList.add("d-none");
+                        // Chiama il nuovo showMessage refattorizzato
+                        showMessage("REGISTRATO", "success");
                     } catch (err) {
                         showMessage(`Errore: ${err.message}`, "danger");
                     }
