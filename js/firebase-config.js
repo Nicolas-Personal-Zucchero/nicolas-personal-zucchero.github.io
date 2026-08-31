@@ -11,11 +11,25 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-export const operatori = [
-    "Daniel Barbieri", 
-    "Gianluca Magnanelli", 
+export const OPERATORI_INTERVENTI = [
+    "Daniel Barbieri",
+    "Gianluca Magnanelli",
     "Luca Soldati", 
     "Denis Severini", 
     "Mauro Amadori",
     "Nicolas Amadori"
-];
+]
+
+export const TIPOLOGIE_INTERVENTI = {
+    "controllo_periodico": "Controllo Periodico",
+    "manutenzione_straordinaria": "Manutenzione Straordinaria",
+    "pulizia": "Pulizia",
+    "analisi": "Analisi"
+}
+
+export const IMPIANTI = [
+    "Impianto 1 (Bianco)",
+    "Impianto 2 (Bianco)",
+    "Impianto 3 (Canna)",
+    "Cisterna"
+]
