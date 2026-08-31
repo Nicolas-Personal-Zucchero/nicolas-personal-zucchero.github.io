@@ -17,9 +17,6 @@
             <div class="mb-4">
                 <label for="tipologiaSelect" class="form-label text-muted fw-bold">Tipologia Intervento</label>
                 <select class="form-select form-select-lg bg-light" id="tipologiaSelect" required>
-                    <option value="manutenzione">Manutenzione</option>
-                    <option value="pulizia" selected>Pulizia</option>
-                    <option value="analisi">Analisi</option>
                 </select>
             </div>
             
@@ -31,15 +28,13 @@
             <div class="mb-4">
                 <label for="operatoreSelect" class="form-label text-muted fw-bold">Operatore</label>
                 <select class="form-select form-select-lg bg-light" id="operatoreSelect" required>
-                    <option value="" selected>Seleziona operatore</option>
-                    <option value="Daniel Barbieri">Daniel Barbieri</option>
-                    <option value="Gianluca Magnanelli">Gianluca Magnanelli</option>
-                    <option value="Luca Soldati">Luca Soldati</option>
-                    <option value="Denis Severini">Denis Severini</option>
-                    <option value="Mauro Amadori">Mauro Amadori</option>
-                    <option value="Nicolas Amadori">Nicolas Amadori</option>
-                    <option value="Esterno">Esterno</option>
+                    <option value="" selected></option>
                 </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="operatoreEsternoInput" class="form-label text-muted fw-bold">Operatore Esterno</label>
+                <input type="text" class="form-control form-control-lg bg-light" id="operatoreEsternoInput" placeholder="Inserisci operatore esterno">
             </div>
             
             <div class="mb-4">
@@ -55,7 +50,7 @@
 
     <script type="module">
         import { doc, getDoc, collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-        import { db, operatori } from "../../js/firebase-config.js";
+        import { db, OPERATORI_INTERVENTI, TIPOLOGIE_INTERVENTI } from "../../js/firebase-config.js";
 
         const messageEl = document.getElementById("message");
         const assetForm = document.getElementById("assetForm");
@@ -65,6 +60,7 @@
         const dataInput = document.getElementById("dataInput");
         const tipologiaSelect = document.getElementById("tipologiaSelect");
         const operatoreSelect = document.getElementById("operatoreSelect");
+        const operatoreEsternoInput = document.getElementById("operatoreEsternoInput");
         const noteInput = document.getElementById("noteInput");
 
         function showMessage(text, type="info") {
@@ -93,7 +89,11 @@
             `;
         }
 
-        operatori.forEach(op => operatoreSelect.add(new Option(op, op)));
+        OPERATORI_INTERVENTI.forEach(op => operatoreSelect.add(new Option(op, op)));
+        const SELECTED_KEY = "pulizia";
+        Object.entries(TIPOLOGIE_INTERVENTI).forEach(([key, tipo]) => {
+            tipologiaSelect.add(new Option(tipo, key, key === SELECTED_KEY, key === SELECTED_KEY));
+        });
 
         const savedOperatore = localStorage.getItem("operatore");
         if (savedOperatore) operatoreSelect.value = savedOperatore;
@@ -128,16 +128,23 @@
                     const dataString = dataInput.value;
                     const tipo = tipologiaSelect.value;
                     const operatore = operatoreSelect.value;
+                    const operatoreEsterno = operatoreEsternoInput.value;
                     const note = noteInput.value;
 
-                    if (!tipo || !operatore) {
-                        showMessage("Compila tipologia e operatore!", "warning");
+                    if (!tipo || !dataString || !operatore) {
+                        showMessage("Compila tipologia, data e operatore!", "warning");
                         return;
                     }
 
                     try {
                         const dataTimestamp = Timestamp.fromDate(new Date(dataString));
-                        const intervento = { tipo, data: dataTimestamp, operatore, note };
+                        const intervento = { 
+                            "tipo": tipo,
+                            "data": dataTimestamp,
+                            "operatore": operatore,
+                            "operatore_esterno": operatoreEsterno,
+                            "note": note
+                        };
 
                         const interventiRef = collection(db, "asset", id, "interventi");
                         await addDoc(interventiRef, intervento);

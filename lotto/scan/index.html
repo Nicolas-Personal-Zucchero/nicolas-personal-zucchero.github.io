@@ -39,7 +39,7 @@
 
     <script type="module">
         import { doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-        import { db, operatori } from "../../js/firebase-config.js"; 
+        import { db, OPERATORI_INTERVENTI } from "../../js/firebase-config.js"; 
 
         const messageEl = document.getElementById("message");
         const lottoForm = document.getElementById("lottoForm");
@@ -51,7 +51,7 @@
             messageEl.innerHTML = `<div class="alert alert-${type}" role="alert">${text}</div>`;
         }
 
-        operatori.forEach(op => operatoreSelect.add(new Option(op, op)));
+        OPERATORI_INTERVENTI.forEach(op => operatoreSelect.add(new Option(op, op)));
 
         const savedOperatore = localStorage.getItem("operatore");
         if (savedOperatore) operatoreSelect.value = savedOperatore;
