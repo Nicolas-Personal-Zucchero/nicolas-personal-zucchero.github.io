@@ -8,50 +8,70 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/style.css">
 </head>
-<body>
-    <div class="card shadow">
-        <h3 id="message">Caricamento...</h3>
+<body class="bg-light">
+    <div class="container-fluid px-3 py-4 bg-white min-vh-100" id="mainContainer">
+        <h3 id="pageTitle" class="mb-4 fw-bold text-center d-none"></h3>
+        <div id="message" class="mb-3">Caricamento...</div>
 
-        <form id="lottoForm" class="d-none mt-3">
-            <div class="mb-3">
-                <label for="lottoInput" class="form-label">Lotto</label>
-                <input type="text" class="form-control" id="lottoInput" readonly required>
-            </div>
-            <div class="mb-3">
-                <label for="impiantoSelect" class="form-label">Impianto</label>
-                <select class="form-select" id="impiantoSelect" required>
-                    <option value="">Seleziona impianto</option>
-                    <option>Impianto 1 (Bianco)</option>
-                    <option>Impianto 2 (Bianco)</option>
-                    <option>Impianto 3 (Canna)</option>
-                    <option>Cisterna</option>
+        <form id="lottoForm" class="d-none">            
+            <div class="mb-4">
+                <label for="impiantoSelect" class="form-label text-muted fw-bold">Impianto</label>
+                <select class="form-select form-select-lg bg-light" id="impiantoSelect" required>
+                    <option value="" selected></option>
                 </select>
             </div>
-            <div class="mb-3">
-                <label for="operatoreSelect" class="form-label">Operatore</label>
-                <select class="form-select" id="operatoreSelect" required>
-                    <option value="" selected>Seleziona operatore</option>
+            
+            <div class="mb-4">
+                <label for="operatoreSelect" class="form-label text-muted fw-bold">Operatore</label>
+                <select class="form-select form-select-lg bg-light" id="operatoreSelect" required>
+                    <option value="" selected></option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Registra scansione</button>
+            
+            <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fs-4 fw-bold mt-2 shadow-sm">
+                Registra scansione
+            </button>
         </form>
     </div>
 
     <script type="module">
         import { doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-        import { db, OPERATORI_INTERVENTI } from "../../js/firebase-config.js"; 
+        import { db, OPERATORI_INTERVENTI, IMPIANTI } from "../../js/firebase-config.js"; 
 
         const messageEl = document.getElementById("message");
         const lottoForm = document.getElementById("lottoForm");
-        const lottoInput = document.getElementById("lottoInput");
+        const pageTitle = document.getElementById("pageTitle");
         const impiantoSelect = document.getElementById("impiantoSelect");
         const operatoreSelect = document.getElementById("operatoreSelect");
 
         function showMessage(text, type="info") {
-            messageEl.innerHTML = `<div class="alert alert-${type}" role="alert">${text}</div>`;
+            const container = document.getElementById('mainContainer');
+            
+            lottoForm.classList.add("d-none");
+            pageTitle.classList.add("d-none");
+            
+            document.body.className = `bg-${type}`;
+            const textColor = type === 'warning' ? 'text-dark' : 'text-white';
+            container.className = `container-fluid px-3 py-4 min-vh-100 bg-${type} ${textColor}`;
+
+            const icons = {
+                success: `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>`,
+                danger: `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/></svg>`,
+                warning: `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>`
+            };
+            
+            const icon = icons[type] || icons.success;
+
+            messageEl.innerHTML = `
+                <div class="d-flex flex-column align-items-center justify-content-center min-vh-100 text-center pb-5">
+                    ${icon}
+                    <h1 class="display-4 fw-bold mt-4 px-3">${text}</h1>
+                </div>
+            `;
         }
 
         OPERATORI_INTERVENTI.forEach(op => operatoreSelect.add(new Option(op, op)));
+        IMPIANTI.forEach(op => impiantoSelect.add(new Option(op, op)));
 
         const savedOperatore = localStorage.getItem("operatore");
         if (savedOperatore) operatoreSelect.value = savedOperatore;
@@ -75,8 +95,9 @@
                     return;
                 }
 
-                lottoInput.value = lotto;
+                pageTitle.textContent = lotto;
                 lottoForm.classList.remove("d-none");
+                pageTitle.classList.remove("d-none");
                 messageEl.innerHTML = "";
 
                 lottoForm.addEventListener("submit", async (e) => {
@@ -93,16 +114,16 @@
                         await updateDoc(lottoRef, {
                             scansioni_etichette: arrayUnion({impianto, operatore, date: new Date()})
                         });
-                        showMessage("Scansione registrata con successo!", "success");
-                        lottoForm.classList.add("d-none");
+                        showMessage("REGISTRATO", "success");
                     } catch (err) {
-                        showMessage(`Errore durante il salvataggio: ${err.message}`, "danger");
+                        showMessage(`Errore: ${err.message}`, "danger");
                     }
+                    
                     const newUrl = window.location.origin + window.location.pathname;
                     history.replaceState(null, "", newUrl);
                 });
             } catch (err) {
-                showMessage(`Errore nel recuperare il lotto: ${err.message}`, "danger");
+                showMessage(`Errore: ${err.message}`, "danger");
             }
         }
     </script>

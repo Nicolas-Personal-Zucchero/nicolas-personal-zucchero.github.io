@@ -148,8 +148,7 @@
 
                         const interventiRef = collection(db, "asset", id, "interventi");
                         await addDoc(interventiRef, intervento);
-                        
-                        // Chiama il nuovo showMessage refattorizzato
+
                         showMessage("REGISTRATO", "success");
                     } catch (err) {
                         showMessage(`Errore: ${err.message}`, "danger");

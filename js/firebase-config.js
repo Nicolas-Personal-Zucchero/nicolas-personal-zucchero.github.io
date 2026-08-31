@@ -26,3 +26,10 @@ export const TIPOLOGIE_INTERVENTI = {
     "pulizia": "Pulizia",
     "analisi": "Analisi"
 }
+
+export const IMPIANTI = [
+    "Impianto 1 (Bianco)",
+    "Impianto 2 (Bianco)",
+    "Impianto 3 (Canna)",
+    "Cisterna"
+]
